@@ -343,7 +343,7 @@ class Bullet(pygame.sprite.Sprite):
 
     def rotate(self, angle):
         """rotate an image while keeping its center"""
-        rot_image = pygame.transform.rotate(self.image, angle-90)
+        rot_image = pygame.transform.rotate(self.image, angle)
         rot_rect = rot_image.get_rect(center=self.rect.center)
         self.image = rot_image
         self.rect = rot_rect
