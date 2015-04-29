@@ -56,7 +56,9 @@ class PyManMain:
         self.background = self.background.convert()
         self.background.fill((0,0,0))
         
-        
+        #move the snakes
+        self.snake1.move()
+        self.snake2.move()
         
         while 1:
             for event in pygame.event.get():
