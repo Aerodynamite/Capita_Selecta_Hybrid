@@ -126,7 +126,12 @@ class PyManMain:
             for bullet in bullet_list:
                 # See if it hit a block
                 # TODO check hit with other player
-                # block_hit_list = pygame.sprite.spritecollide(bullet, self.mine_sprites, True)
+                #block_hit_list = pygame.sprite.spritecollide(bullet, self.snake2.snake_sprites, True)
+
+                #hit = bullet.collideWithSubmarine(self.snake2);
+                #if hit:
+                #    bullet_list.remove(bullet)
+                #    print 'hit'
 
                 # For each block hit, remove the bullet and add to the score
                 #for block in block_hit_list:
@@ -140,7 +145,6 @@ class PyManMain:
 
             bullet_list.draw(self.screen)
             self.pellet_sprites.draw(self.screen)
-            #self.mine_sprites.draw(self.screen)
             self.snake_sprites.draw(self.screen)
             pygame.display.flip()
 
@@ -266,6 +270,9 @@ class Snake(pygame.sprite.Sprite):
 
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
+
+        self.snake_sprites = pygame.sprite.Group()
+
         self.image, self.rect = load_image('images\submarine3.png',-1)
         self.pellets = 0
         """Set the number of Pixels to move each time"""
@@ -355,7 +362,7 @@ class Bullet(pygame.sprite.Sprite):
 
     def update(self):
         """ Move the bullet. """
-        print(self.angle)
+        #print(self.angle)
         x_dist = 8
         y_dist = 8
         theta = self.angle / 180.0 * math.pi
@@ -364,7 +371,13 @@ class Bullet(pygame.sprite.Sprite):
         dx *= -1
 
         self.rect.move_ip(dx, dy)
-        print dx
+        #print dx
+
+    def collideWithSubmarine(self, submarine):
+        offset_x, offset_y = (self.rect.left - submarine.rect.left), (self.rect.top - submarine.rect.top)
+        if (submarine.hitmask.overlap(self.hitmask, (offset_x, offset_y)) != None):
+            return True
+        return False
 		
 		
 class Pellet(pygame.sprite.Sprite):
