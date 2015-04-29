@@ -7,9 +7,9 @@ from pygame.locals import *
 from helpers import *
 from random import randint
 
-FORWARDSPEED= 3
-BACKWARDSPEED= 3
-TURNINGSPEED= 3
+FORWARDSPEED= 0.001
+BACKWARDSPEED= 0.001
+TURNINGSPEED= 0.001
 
 DRAG= 0
 ANGULARDRAG= 0
