@@ -47,6 +47,12 @@ class PyManMain:
         self.background = pygame.Surface(self.screen.get_size())
         self.background = self.background.convert()
         self.background.fill((0,0,0))
+
+        # List of each bullet
+        bullet_list = pygame.sprite.Group()
+
+        # Used to manage how fast the screen updates
+        clock = pygame.time.Clock()
         
         while 1:
             for event in pygame.event.get():
@@ -65,50 +71,79 @@ class PyManMain:
                         self.snake2.rotate(-10)
                     elif(event.key == K_e):
                         self.snake2.move(event.key)
+                    elif event.key == K_SPACE:
+                        # Fire a bullet if the user taps the space bar
+                        bullet = Bullet(self.snake1.angle, self.snake1)
+                        # Set the bullet so it is where the player is
+                        #bullet.rect.x = self.snake1.rect.x + self.snake1.rect.width
+                        #bullet.rect.y = self.snake1.rect.y + self.snake1.rect.height
+                        # Add the bullet to the lists
+                        bullet_list.add(bullet)
 
                         
-                """Check for collision between the submarine and the bullets"""
-                amountTorp1 = self.collideWithTorpedo(self.snake1)
-                amountTorp2 = self.collideWithTorpedo(self.snake2)
+            """Check for collision between the submarine and the bullets"""
+            amountTorp1 = self.collideWithTorpedo(self.snake1)
+            amountTorp2 = self.collideWithTorpedo(self.snake2)
 
-                """Check for collision between the submarine and the mines"""
-                colsMines1 = self.collideWithMines(self.snake1)
-                colsMines2 = self.collideWithMines(self.snake2)
-                if(colsMines1):
-                    self.GameoverRestart(1)
-                elif(colsMines2):
-                    self.GameoverRestart(2)
-                elif(self.snake1.collideWithSubmarine(self.snake2)):
-                    self.GameoverRestart(0)
-                else:
-                    self.RespawnTorpedos(amountTorp1+amountTorp2)
-                    """Update the amount of pellets eaten"""
-                    self.snake1.pellets += amountTorp1
-                    self.snake2.pellets += amountTorp2
+            """Check for collision between the submarine and the mines"""
+            colsMines1 = self.collideWithMines(self.snake1)
+            colsMines2 = self.collideWithMines(self.snake2)
+            if(colsMines1):
+                self.GameoverRestart(1)
+            elif(colsMines2):
+                self.GameoverRestart(2)
+            elif(self.snake1.collideWithSubmarine(self.snake2)):
+                self.GameoverRestart(0)
+            else:
+                self.RespawnTorpedos(amountTorp1+amountTorp2)
+                """Update the amount of pellets eaten"""
+                self.snake1.pellets += amountTorp1
+                self.snake2.pellets += amountTorp2
 
-                    """Do the Drawing"""
-                    self.screen.blit(self.background, (0, 0))
-                    if pygame.font:
-                        font = pygame.font.Font(None, 36)
-                        text1 = font.render("Ammo player1 %s" % self.snake1.pellets
-                                            , 1, (255, 0, 0))
-                        text2 = font.render("Ammo player2 %s" % self.snake2.pellets
-                                            , 1, (255, 0, 0))
-                        textpos1 = text1.get_rect(centerx=self.background.get_width()/2)
-                        textpos2 = text1.get_rect(centerx=self.background.get_width()/2)
-                        self.screen.blit(text1, textpos1)
-                        self.screen.blit(text2, textpos2)
+                """Do the Drawing"""
+                self.screen.blit(self.background, (0, 0))
+                if pygame.font:
+                    font = pygame.font.Font(None, 36)
+                    text1 = font.render("Ammo player1 %s" % self.snake1.pellets
+                                        , 1, (255, 0, 0))
+                    text2 = font.render("Ammo player2 %s" % self.snake2.pellets
+                                        , 1, (255, 0, 0))
+                    textpos1 = text1.get_rect(centerx=self.background.get_width()/2)
+                    textpos2 = text1.get_rect(centerx=self.background.get_width()/2)
+                    self.screen.blit(text1, textpos1)
+                    self.screen.blit(text2, textpos2)
 
 
-                    """Display bounding boxes
-                    self.DrawBoundingB(self.mine_sprites)
-                    self.DrawBoundingB(self.snake_sprites)
-                    self.DrawBoundingB(self.pellet_sprites)"""
+                """Display bounding boxes
+                self.DrawBoundingB(self.mine_sprites)
+                self.DrawBoundingB(self.snake_sprites)
+                self.DrawBoundingB(self.pellet_sprites)"""
 
-                    self.pellet_sprites.draw(self.screen)
-                    #self.mine_sprites.draw(self.screen)
-                    self.snake_sprites.draw(self.screen)
-                    pygame.display.flip()
+            # Call the update() method on all bullets
+            bullet_list.update()
+            # Calculate mechanics for each bullet
+            for bullet in bullet_list:
+                # See if it hit a block
+                block_hit_list = pygame.sprite.spritecollide(bullet, self.mine_sprites, True)
+
+                # For each block hit, remove the bullet and add to the score
+                for block in block_hit_list:
+                    bullet_list.remove(bullet)
+                    print('hit')
+
+                # Remove the bullet if it flies up off the screen
+                if bullet.outOfBounds(self.width, self.height):
+                    bullet_list.remove(bullet)
+                    print('removed')
+
+            bullet_list.draw(self.screen)
+            self.pellet_sprites.draw(self.screen)
+            #self.mine_sprites.draw(self.screen)
+            self.snake_sprites.draw(self.screen)
+            pygame.display.flip()
+
+            # --- Limit to 20 frames per second
+            clock.tick(60)
 
     def DrawBoundingB(self, spritesGroup):
         for x in spritesGroup:
@@ -271,6 +306,63 @@ class Snake(pygame.sprite.Sprite):
             return True
         return False
 
+# Define some colors
+BLACK    = (   0,   0,   0)
+WHITE    = ( 255, 255, 255)
+RED      = ( 255,   0,   0)
+BLUE     = (   0,   0, 255)
+
+class Bullet(pygame.sprite.Sprite):
+    """ This class represents the bullet . """
+    def __init__(self, angle, playerboat):
+        # Call the parent class (Sprite) constructor
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = pygame.Surface([4, 10])
+        self.image.fill(RED)
+        self.rect = self.image.get_rect()
+        self.angle = angle
+        self.rotate(angle)
+        self.baseimage = self.image
+
+        self.rect.x = playerboat.rect.x + playerboat.rect.width / 2
+        self.rect.y = playerboat.rect.y + playerboat.rect.height / 2
+
+
+
+    def rotate(self, angle):
+        """rotate an image while keeping its center"""
+        rot_image = pygame.transform.rotate(self.image, angle-90)
+        rot_rect = rot_image.get_rect(center=self.rect.center)
+        self.image = rot_image
+        self.rect = rot_rect
+
+    def outOfBounds(self, width, height):
+        x = self.rect.x
+        y = self.rect.y
+        outOfBounds = False
+
+        if x < 0 or x > width:
+            outOfBounds = True
+        if y < 0 or y > height:
+            outOfBounds = True
+
+        return outOfBounds
+
+    def update(self):
+        """ Move the bullet. """
+        print(self.angle)
+        x_dist = 8
+        y_dist = 8
+        theta = self.angle / 180.0 * math.pi
+        dx = math.cos(theta) * x_dist
+        dy = math.sin(theta) * y_dist
+        dx *= -1
+
+        self.rect.move_ip(dx, dy)
+        print dx
+		
+		
 class Pellet(pygame.sprite.Sprite):
     def __init__(self, rect=None):
         pygame.sprite.Sprite.__init__(self) 
