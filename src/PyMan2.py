@@ -127,23 +127,18 @@ class PyManMain:
             # Calculate mechanics for each bullet
             for bullet in bullet_list:
                 # See if it hit a block
-                # TODO check hit with other player
-                #hit = pygame.sprite.spritecollide(bullet, self.snake2.snake_sprites, True)
-
-                hit = False
                 if bullet.owner == 1:
                     hit = bullet.collideWithSubmarine(self.snake2)
+                    loser = 2
                 else:
                     hit = bullet.collideWithSubmarine(self.snake1)
-
+                    loser = 1
                 if hit:
                     bullet_list.remove(bullet)
-                    print 'hit'
-
+                    self.GameoverRestart(loser)
                 # Remove the bullet if it flies off the screen
                 if bullet.outOfBounds(self.width, self.height):
                     bullet_list.remove(bullet)
-                    print('removed')
 
             bullet_list.draw(self.screen)
             self.pellet_sprites.draw(self.screen)
