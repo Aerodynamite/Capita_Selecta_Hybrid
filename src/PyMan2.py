@@ -87,13 +87,13 @@ class PyManMain:
             amountTorp2 = self.collideWithTorpedo(self.snake2)
 
             """Check for collision between the submarine and the mines"""
-            colsMines1 = self.collideWithMines(self.snake1)
-            colsMines2 = self.collideWithMines(self.snake2)
-            if(colsMines1):
-                self.GameoverRestart(1)
-            elif(colsMines2):
-                self.GameoverRestart(2)
-            elif(self.snake1.collideWithSubmarine(self.snake2)):
+            #colsMines1 = self.collideWithMines(self.snake1)
+            #colsMines2 = self.collideWithMines(self.snake2)
+            #if(colsMines1):
+            #    self.GameoverRestart(1)
+            #elif(colsMines2):
+            #    self.GameoverRestart(2)
+            if(self.snake1.collideWithSubmarine(self.snake2)):
                 self.GameoverRestart(0)
             else:
                 self.RespawnTorpedos(amountTorp1+amountTorp2)
@@ -125,12 +125,13 @@ class PyManMain:
             # Calculate mechanics for each bullet
             for bullet in bullet_list:
                 # See if it hit a block
-                block_hit_list = pygame.sprite.spritecollide(bullet, self.mine_sprites, True)
+                # TODO check hit with other player
+                # block_hit_list = pygame.sprite.spritecollide(bullet, self.mine_sprites, True)
 
                 # For each block hit, remove the bullet and add to the score
-                for block in block_hit_list:
-                    bullet_list.remove(bullet)
-                    print('hit')
+                #for block in block_hit_list:
+                #    bullet_list.remove(bullet)
+                #    print('hit')
 
                 # Remove the bullet if it flies up off the screen
                 if bullet.outOfBounds(self.width, self.height):
@@ -199,13 +200,13 @@ class PyManMain:
 
             self.mine_sprites.add(mine)
 
-    def collideWithMines(self, snake):
-        """check if there is a collision between mines and submarine"""
-        for mine in self.mine_sprites:
-            offset_x, offset_y = (mine.rect.left - snake.rect.left), (mine.rect.top - snake.rect.top)
-            if (snake.hitmask.overlap(mine.hitmask, (offset_x, offset_y)) != None):
-                return True
-        return False
+    #def collideWithMines(self, snake):
+    #    """check if there is a collision between mines and submarine"""
+    #    for mine in self.mine_sprites:
+    #        offset_x, offset_y = (mine.rect.left - snake.rect.left), (mine.rect.top - snake.rect.top)
+    #        if (snake.hitmask.overlap(mine.hitmask, (offset_x, offset_y)) != None):
+    #            return True
+    #    return False
 
     def collideWithTorpedo(self, snake):
         """amount of picked up torpedo's"""
