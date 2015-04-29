@@ -284,8 +284,8 @@ class Snake(pygame.sprite.Sprite):
         
     def move(self):
         self.rotate(angularVelocity)
-        xMove = self.x_dist * math.sin(math.radians(self.angle-90))
-        yMove = self.y_dist * math.cos(math.radians(self.angle-90))
+        xMove = self.velocity * math.sin(math.radians(self.angle-90))
+        yMove = self.velocity * math.cos(math.radians(self.angle-90))
         
         self.rect.move_ip(xMove, yMove)
         self.refreshmask()
