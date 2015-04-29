@@ -7,12 +7,14 @@ from pygame.locals import *
 from helpers import *
 from random import randint
 
-FORWARDSPEED= 0.5
-BACKWARDSPEED= 0.001
-TURNINGSPEED= 0.001
+FPS= 60.0
 
-DRAG= 0.1
-ANGULARDRAG= 0
+FORWARDSPEED= 5.0/FPS
+BACKWARDSPEED= 5.0/FPS
+TURNINGSPEED= 5.0/FPS
+
+DRAG= 2.0/FPS
+ANGULARDRAG= 2.0/FPS
 
 if not pygame.font: print 'Warning, fonts disabled'
 if not pygame.mixer: print 'Warning, sound disabled'
@@ -47,9 +49,7 @@ class PyManMain:
         self.LoadSprites()
         """spawn the mines on random locations"""
         self.SpawnMines(self.numMines, self.snake1, self.snake2)
-        """tell pygame to keep sending up keystrokes when they are
-        held down"""
-        #pygame.key.set_repeat(500, 30)
+        
         
         """Create the background"""
         self.background = pygame.Surface(self.screen.get_size())
@@ -66,20 +66,35 @@ class PyManMain:
                     sys.exit()
                 elif event.type == KEYDOWN:
                     if (event.key == K_KP4):
-                        self.snake1.turnLeft()
+                        self.snake1.leftKeyDown= True
                     elif(event.key == K_KP6):
-                        self.snake1.turnRight()
+                        self.snake1.rightKeyDown= True
                     elif(event.key == K_KP8):
-                        print self.snake1.velocity
-                        self.snake1.accelerateForward()
+                        self.snake1.upKeyDown= True
                     elif(event.key == K_s):
-                        self.snake2.turnLeft()
+                        self.snake2.leftKeyDown= True
                     elif(event.key == K_f):
-                        self.snake2.turnRight()
+                        self.snake2.rightKeyDown= True
                     elif(event.key == K_e):
-                        self.snake2.accelerateForward()
-                    
+                        self.snake2.upKeyDown= True
+                elif event.type == KEYUP:
+                    if (event.key == K_KP4):
+                        self.snake1.leftKeyDown= False
+                    elif(event.key == K_KP6):
+                        self.snake1.rightKeyDown= False
+                    elif(event.key == K_KP8):
+                        self.snake1.upKeyDown= False
+                    elif(event.key == K_s):
+                        self.snake2.leftKeyDown= False
+                    elif(event.key == K_f):
+                        self.snake2.rightKeyDown= False
+                    elif(event.key == K_e):
+                        self.snake2.upKeyDown= False
+            
+                
             #move the snakes and add drag
+            self.snake1.checkKeys()
+            self.snake2.checkKeys()
             self.snake1.move()
             self.snake2.move()
             self.snake1.addDrag()
@@ -254,14 +269,31 @@ class Snake(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = load_image('images\submarine3.png',-1)
         self.pellets = 0
+        #velocity
         self.velocity= 0
         self.angularVelocity= 0
+        #keyinfo
+        self.leftKeyDown= False
+        self.rightKeyDown= False
+        self.upKeyDown= False
+        self.downKeyDown= False
+        
         self.angle = 0
         self.scale = 3
         self.image = pygame.transform.scale(self.image, (self.image.get_width()/self.scale, self.image.get_height()/self.scale))
         self.baseimage = self.image
         self.hitmask = pygame.mask.from_surface(self.image)
 
+    def checkKeys(self):
+        if self.leftKeyDown:
+            self.turnLeft()
+        if self.rightKeyDown:
+            self.turnRight()
+        if self.upKeyDown:
+            self.accelerateForward()
+        if self.downKeyDown:
+            self.accelerateBackward()
+        
     def addDrag(self):
         if self.velocity > DRAG:
             self.velocity-= DRAG
