@@ -10,8 +10,10 @@ from random import randint
 FPS= 60.0
 
 FORWARDSPEED= 5.0/FPS
-BACKWARDSPEED= 5.0/FPS
+BACKWARDSPEED= 3.0/FPS
 TURNINGSPEED= 5.0/FPS
+#example: maxforwardspeed= maxspeed * forwardspeed
+MAXSPEED= 10.0
 
 DRAG= 2.0/FPS
 ANGULARDRAG= 2.0/FPS
@@ -71,12 +73,16 @@ class PyManMain:
                         self.snake1.rightKeyDown= True
                     elif(event.key == K_KP8):
                         self.snake1.upKeyDown= True
+                    elif(event.key == K_KP5):
+                        self.snake1.downKeyDown= True
                     elif(event.key == K_s):
                         self.snake2.leftKeyDown= True
                     elif(event.key == K_f):
                         self.snake2.rightKeyDown= True
                     elif(event.key == K_e):
                         self.snake2.upKeyDown= True
+                    elif(event.key == K_d):
+                        self.snake2.downKeyDown= True
                 elif event.type == KEYUP:
                     if (event.key == K_KP4):
                         self.snake1.leftKeyDown= False
@@ -84,12 +90,16 @@ class PyManMain:
                         self.snake1.rightKeyDown= False
                     elif(event.key == K_KP8):
                         self.snake1.upKeyDown= False
+                    elif(event.key == K_KP5):
+                        self.snake1.downKeyDown= False
                     elif(event.key == K_s):
                         self.snake2.leftKeyDown= False
                     elif(event.key == K_f):
                         self.snake2.rightKeyDown= False
                     elif(event.key == K_e):
                         self.snake2.upKeyDown= False
+                    elif(event.key == K_d):
+                        self.snake2.downKeyDown= False
             
                 
             #move the snakes and add drag
@@ -311,15 +321,23 @@ class Snake(pygame.sprite.Sprite):
     
     def accelerateForward(self):
         self.velocity+= FORWARDSPEED
+        self.velocity > MAXSPEED * FORWARDSPEED:
+            self.velocity= MAXSPEED * FORWARDSPEED
         
     def accelerateBackward(self):
         self.velocity-= BACKWARDSPEED
+        self.velocity < -MAXSPEED * BACKWARDSPEED:
+            self.velocity= -MAXSPEED * BACKWARDSPEED
     
     def turnLeft(self):
         self.angularVelocity+= TURNINGSPEED
+        if self.angularVelocity > MAXSPEED * TURNINGSPEED
+            self.angularVelocity= MAXSPEED * TURNINGSPEED
         
     def turnRight(self):
         self.angularVelocity-= TURNINGSPEED
+        if self.angularVelocity < -MAXSPEED * TURNINGSPEED:
+            self.angularVelocity= -MAXSPEED * TURNINGSPEED
         
     def move(self):
         self.rotate(self.angularVelocity)
