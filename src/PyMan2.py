@@ -31,6 +31,7 @@ class PyManMain:
 
         """Create the Screen"""
         self.screen = pygame.display.set_mode((self.width, self.height))#, pygame.FULLSCREEN)
+
                                                           
     def MainLoop(self):
         """This is the Main Loop of the Game"""
@@ -38,7 +39,7 @@ class PyManMain:
         """Load All of our Sprites"""
         self.LoadSprites()
         """spawn the mines on random locations"""
-        self.SpawnMines(self.numMines, self.snake1, self.snake2)
+        #self.SpawnMines(self.numMines, self.snake1, self.snake2)
         """tell pygame to keep sending up keystrokes when they are
         held down"""
         pygame.key.set_repeat(500, 30)
@@ -270,6 +271,8 @@ class Snake(pygame.sprite.Sprite):
         self.x_dist = 8
         self.y_dist = 8
         self.angle = 0
+        self.scale = 3
+        self.image = pygame.transform.scale(self.image, (self.image.get_width()/self.scale, self.image.get_height()/self.scale))
         self.baseimage = self.image
         self.hitmask = pygame.mask.from_surface(self.image)
 
@@ -367,6 +370,8 @@ class Pellet(pygame.sprite.Sprite):
     def __init__(self, rect=None):
         pygame.sprite.Sprite.__init__(self) 
         self.image, self.rect = load_image('images\\torpedo4.png',-1)
+        self.scale = 2
+        self.image = pygame.transform.scale(self.image, (self.image.get_width()/self.scale, self.image.get_height()/self.scale))
         if rect != None:
             self.rect = self.image.get_rect(center=rect.center)
         else:
