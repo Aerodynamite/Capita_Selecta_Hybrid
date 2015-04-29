@@ -74,10 +74,12 @@ class PyManMain:
                         self.snake2.move(event.key)
                     elif event.key == K_SPACE:
                         # Fire a bullet if the user taps the space bar
-                        bullet = Bullet(self.snake1.angle, self.snake1)
-                        # Set the bullet so it is where the player is
-                        #bullet.rect.x = self.snake1.rect.x + self.snake1.rect.width
-                        #bullet.rect.y = self.snake1.rect.y + self.snake1.rect.height
+                        bullet = Bullet(self.snake1.angle, self.snake1, 1)
+                        # Add the bullet to the lists
+                        bullet_list.add(bullet)
+                    elif event.key == K_KP_ENTER:
+                        # Fire a bullet if the user taps the space bar
+                        bullet = Bullet(self.snake2.angle, self.snake2, 2)
                         # Add the bullet to the lists
                         bullet_list.add(bullet)
 
@@ -126,19 +128,19 @@ class PyManMain:
             for bullet in bullet_list:
                 # See if it hit a block
                 # TODO check hit with other player
-                #block_hit_list = pygame.sprite.spritecollide(bullet, self.snake2.snake_sprites, True)
+                #hit = pygame.sprite.spritecollide(bullet, self.snake2.snake_sprites, True)
 
-                #hit = bullet.collideWithSubmarine(self.snake2);
-                #if hit:
-                #    bullet_list.remove(bullet)
-                #    print 'hit'
+                hit = False
+                if bullet.owner == 1:
+                    hit = bullet.collideWithSubmarine(self.snake2)
+                else:
+                    hit = bullet.collideWithSubmarine(self.snake1)
 
-                # For each block hit, remove the bullet and add to the score
-                #for block in block_hit_list:
-                #    bullet_list.remove(bullet)
-                #    print('hit')
+                if hit:
+                    bullet_list.remove(bullet)
+                    print 'hit'
 
-                # Remove the bullet if it flies up off the screen
+                # Remove the bullet if it flies off the screen
                 if bullet.outOfBounds(self.width, self.height):
                     bullet_list.remove(bullet)
                     print('removed')
@@ -325,21 +327,24 @@ BLUE     = (   0,   0, 255)
 
 class Bullet(pygame.sprite.Sprite):
     """ This class represents the bullet . """
-    def __init__(self, angle, playerboat):
+    def __init__(self, angle, playerboat, owner):
         # Call the parent class (Sprite) constructor
         pygame.sprite.Sprite.__init__(self)
 
-        self.image = pygame.Surface([4, 10])
-        self.image.fill(RED)
+        self.owner = owner
+
+        self.image, self.rect = load_image('images\\torpedo4.png', -1)
+        self.scale = 2
+        self.image = pygame.transform.scale(self.image, (self.image.get_width()/self.scale, self.image.get_height()/self.scale))
         self.rect = self.image.get_rect()
+
         self.angle = angle
         self.rotate(angle)
         self.baseimage = self.image
+        self.hitmask = pygame.mask.from_surface(self.image)
 
         self.rect.x = playerboat.rect.x + playerboat.rect.width / 2
         self.rect.y = playerboat.rect.y + playerboat.rect.height / 2
-
-
 
     def rotate(self, angle):
         """rotate an image while keeping its center"""
@@ -375,7 +380,7 @@ class Bullet(pygame.sprite.Sprite):
 
     def collideWithSubmarine(self, submarine):
         offset_x, offset_y = (self.rect.left - submarine.rect.left), (self.rect.top - submarine.rect.top)
-        if (submarine.hitmask.overlap(self.hitmask, (offset_x, offset_y)) != None):
+        if submarine.hitmask.overlap(self.hitmask, (offset_x, offset_y)) is not None:
             return True
         return False
 		
