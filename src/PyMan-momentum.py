@@ -7,11 +7,11 @@ from pygame.locals import *
 from helpers import *
 from random import randint
 
-FORWARDSPEED= 0.001
+FORWARDSPEED= 0.5
 BACKWARDSPEED= 0.001
 TURNINGSPEED= 0.001
 
-DRAG= 0
+DRAG= 0.1
 ANGULARDRAG= 0
 
 if not pygame.font: print 'Warning, fonts disabled'
@@ -56,7 +56,9 @@ class PyManMain:
         self.background = self.background.convert()
         self.background.fill((0,0,0))
         
-        
+
+        # Used to manage how fast the screen updates
+        clock = pygame.time.Clock()
         
         while 1:
             for event in pygame.event.get():
@@ -68,6 +70,7 @@ class PyManMain:
                     elif(event.key == K_KP6):
                         self.snake1.turnRight()
                     elif(event.key == K_KP8):
+                        print self.snake1.velocity
                         self.snake1.accelerateForward()
                     elif(event.key == K_s):
                         self.snake2.turnLeft()
@@ -120,10 +123,13 @@ class PyManMain:
                 self.DrawBoundingB(self.snake_sprites)
                 self.DrawBoundingB(self.pellet_sprites)"""
 
-                self.pellet_sprites.draw(self.screen)
-                #self.mine_sprites.draw(self.screen)
-                self.snake_sprites.draw(self.screen)
-                pygame.display.flip()
+            self.pellet_sprites.draw(self.screen)
+            #self.mine_sprites.draw(self.screen)
+            self.snake_sprites.draw(self.screen)
+            pygame.display.flip()
+
+            # --- Limit to 20 frames per second
+            clock.tick(60)
                 
                 
 
@@ -261,7 +267,7 @@ class Snake(pygame.sprite.Sprite):
             self.velocity-= DRAG
         elif self.velocity < -DRAG:
             self.velocity+= DRAG
-        else
+        else:
             self.velocity= 0
         
         if self.angularVelocity > ANGULARDRAG:
@@ -285,8 +291,8 @@ class Snake(pygame.sprite.Sprite):
         
     def move(self):
         self.rotate(self.angularVelocity)
-        xMove = self.x_dist * math.sin(math.radians(self.angle-90))
-        yMove = self.y_dist * math.cos(math.radians(self.angle-90))
+        xMove = self.velocity * math.sin(math.radians(self.angle-90))
+        yMove = self.velocity * math.cos(math.radians(self.angle-90))
         
         self.rect.move_ip(xMove, yMove)
         self.refreshmask()
