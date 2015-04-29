@@ -7,12 +7,12 @@ from pygame.locals import *
 from helpers import *
 from random import randint
 
-FORWARDSPEED= 5
-BACKWARDSPEED= 3
-TURNINGSPEED= 5
+FORWARDSPEED= 0.001
+BACKWARDSPEED= 0.001
+TURNINGSPEED= 0.001
 
-DRAG= 2
-ANGULARDRAG= 2
+DRAG= 0
+ANGULARDRAG= 0
 
 if not pygame.font: print 'Warning, fonts disabled'
 if not pygame.mixer: print 'Warning, sound disabled'
@@ -49,16 +49,14 @@ class PyManMain:
         self.SpawnMines(self.numMines, self.snake1, self.snake2)
         """tell pygame to keep sending up keystrokes when they are
         held down"""
-        pygame.key.set_repeat(500, 30)
+        #pygame.key.set_repeat(500, 30)
         
         """Create the background"""
         self.background = pygame.Surface(self.screen.get_size())
         self.background = self.background.convert()
         self.background.fill((0,0,0))
         
-        #move the snakes
-        self.snake1.move()
-        self.snake2.move()
+        
         
         while 1:
             for event in pygame.event.get():
@@ -66,65 +64,68 @@ class PyManMain:
                     sys.exit()
                 elif event.type == KEYDOWN:
                     if (event.key == K_KP4):
-                        self.snake1.rotateLeft()
+                        self.snake1.turnLeft()
                     elif(event.key == K_KP6):
-                        self.snake1.rotateRight()
+                        self.snake1.turnRight()
                     elif(event.key == K_KP8):
                         self.snake1.accelerateForward()
-                    else:
-                        self.snake1.addDrag()#make sure the submarine slows down if no key is pressed
-                    if(event.key == K_s):
+                    elif(event.key == K_s):
                         self.snake2.turnLeft()
                     elif(event.key == K_f):
                         self.snake2.turnRight()
                     elif(event.key == K_e):
                         self.snake2.accelerateForward()
-                    else: 
-                        self.snake2.addDrag()#make sure the submarine slows down if no key is pressed
+                    
+            #move the snakes and add drag
+            self.snake1.move()
+            self.snake2.move()
+            self.snake1.addDrag()
+            self.snake2.addDrag()
+            
+            """Check for collision between the submarine and the bullets"""
+            amountTorp1 = self.collideWithTorpedo(self.snake1)
+            amountTorp2 = self.collideWithTorpedo(self.snake2)
 
-                        
-                """Check for collision between the submarine and the bullets"""
-                amountTorp1 = self.collideWithTorpedo(self.snake1)
-                amountTorp2 = self.collideWithTorpedo(self.snake2)
+            """Check for collision between the submarine and the mines"""
+            colsMines1 = self.collideWithMines(self.snake1)
+            colsMines2 = self.collideWithMines(self.snake2)
+            if(colsMines1):
+                self.GameoverRestart(1)
+            elif(colsMines2):
+                self.GameoverRestart(2)
+            elif(self.snake1.collideWithSubmarine(self.snake2)):
+                self.GameoverRestart(0)
+            else:
+                self.RespawnTorpedos(amountTorp1+amountTorp2)
+                """Update the amount of pellets eaten"""
+                self.snake1.pellets += amountTorp1
+                self.snake2.pellets += amountTorp2
 
-                """Check for collision between the submarine and the mines"""
-                colsMines1 = self.collideWithMines(self.snake1)
-                colsMines2 = self.collideWithMines(self.snake2)
-                if(colsMines1):
-                    self.GameoverRestart(1)
-                elif(colsMines2):
-                    self.GameoverRestart(2)
-                elif(self.snake1.collideWithSubmarine(self.snake2)):
-                    self.GameoverRestart(0)
-                else:
-                    self.RespawnTorpedos(amountTorp1+amountTorp2)
-                    """Update the amount of pellets eaten"""
-                    self.snake1.pellets += amountTorp1
-                    self.snake2.pellets += amountTorp2
-
-                    """Do the Drawing"""
-                    self.screen.blit(self.background, (0, 0))
-                    if pygame.font:
-                        font = pygame.font.Font(None, 36)
-                        text1 = font.render("Ammo player1 %s" % self.snake1.pellets
-                                            , 1, (255, 0, 0))
-                        text2 = font.render("Ammo player2 %s" % self.snake2.pellets
-                                            , 1, (255, 0, 0))
-                        textpos1 = text1.get_rect(centerx=self.background.get_width()/2)
-                        textpos2 = text1.get_rect(centerx=self.background.get_width()/2)
-                        self.screen.blit(text1, textpos1)
-                        self.screen.blit(text2, textpos2)
+                """Do the Drawing"""
+                self.screen.blit(self.background, (0, 0))
+                if pygame.font:
+                    font = pygame.font.Font(None, 36)
+                    text1 = font.render("Ammo player1 %s" % self.snake1.pellets
+                                        , 1, (255, 0, 0))
+                    text2 = font.render("Ammo player2 %s" % self.snake2.pellets
+                                        , 1, (255, 0, 0))
+                    textpos1 = text1.get_rect(centerx=self.background.get_width()/2)
+                    textpos2 = text1.get_rect(centerx=self.background.get_width()/2)
+                    self.screen.blit(text1, textpos1)
+                    self.screen.blit(text2, textpos2)
 
 
-                    """Display bounding boxes
-                    self.DrawBoundingB(self.mine_sprites)
-                    self.DrawBoundingB(self.snake_sprites)
-                    self.DrawBoundingB(self.pellet_sprites)"""
+                """Display bounding boxes
+                self.DrawBoundingB(self.mine_sprites)
+                self.DrawBoundingB(self.snake_sprites)
+                self.DrawBoundingB(self.pellet_sprites)"""
 
-                    self.pellet_sprites.draw(self.screen)
-                    #self.mine_sprites.draw(self.screen)
-                    self.snake_sprites.draw(self.screen)
-                    pygame.display.flip()
+                self.pellet_sprites.draw(self.screen)
+                #self.mine_sprites.draw(self.screen)
+                self.snake_sprites.draw(self.screen)
+                pygame.display.flip()
+                
+                
 
     def DrawBoundingB(self, spritesGroup):
         for x in spritesGroup:
@@ -267,7 +268,7 @@ class Snake(pygame.sprite.Sprite):
             self.angularVelocity-= ANGULARDRAG
         elif self.angularVelocity < ANGULARDRAG:
             self.angularVelocity+= ANGULARDRAG
-        else self.angularVelocity > ANGULARDRAG:
+        else:
             self.angularVelocity= 0
     
     def accelerateForward(self):
@@ -283,9 +284,9 @@ class Snake(pygame.sprite.Sprite):
         self.angularVelocity-= TURNINGSPEED
         
     def move(self):
-        self.rotate(angularVelocity)
-        xMove = self.velocity * math.sin(math.radians(self.angle-90))
-        yMove = self.velocity * math.cos(math.radians(self.angle-90))
+        self.rotate(self.angularVelocity)
+        xMove = self.x_dist * math.sin(math.radians(self.angle-90))
+        yMove = self.y_dist * math.cos(math.radians(self.angle-90))
         
         self.rect.move_ip(xMove, yMove)
         self.refreshmask()
@@ -340,6 +341,3 @@ class Mine(pygame.sprite.Sprite):
 if __name__ == "__main__":
     MainWindow = PyManMain()
     MainWindow.MainLoop()
-       
-Status API Training Shop Blog About
-© 2015 GitHub, Inc. Terms Privacy Security Contact
