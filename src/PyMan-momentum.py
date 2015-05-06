@@ -280,15 +280,15 @@ class Snake(pygame.sprite.Sprite):
         self.image, self.rect = load_image('images\submarine3.png',-1)
         self.pellets = 0
         #velocity
-        self.velocity= 0
-        self.angularVelocity= 0
+        self.velocity= 0.0
+        self.angularVelocity= 0.0
         #keyinfo
         self.leftKeyDown= False
         self.rightKeyDown= False
         self.upKeyDown= False
         self.downKeyDown= False
         
-        self.angle = 0
+        self.angle = 0.0
         self.scale = 3
         self.image = pygame.transform.scale(self.image, (self.image.get_width()/self.scale, self.image.get_height()/self.scale))
         self.baseimage = self.image
@@ -310,28 +310,28 @@ class Snake(pygame.sprite.Sprite):
         elif self.velocity < -DRAG:
             self.velocity+= DRAG
         else:
-            self.velocity= 0
+            self.velocity= 0.0
         
         if self.angularVelocity > ANGULARDRAG:
             self.angularVelocity-= ANGULARDRAG
         elif self.angularVelocity < ANGULARDRAG:
             self.angularVelocity+= ANGULARDRAG
         else:
-            self.angularVelocity= 0
+            self.angularVelocity= 0.0
     
     def accelerateForward(self):
         self.velocity+= FORWARDSPEED
-        self.velocity > MAXSPEED * FORWARDSPEED:
+        if self.velocity > MAXSPEED * FORWARDSPEED:
             self.velocity= MAXSPEED * FORWARDSPEED
         
     def accelerateBackward(self):
         self.velocity-= BACKWARDSPEED
-        self.velocity < -MAXSPEED * BACKWARDSPEED:
+        if self.velocity < -MAXSPEED * BACKWARDSPEED:
             self.velocity= -MAXSPEED * BACKWARDSPEED
     
     def turnLeft(self):
         self.angularVelocity+= TURNINGSPEED
-        if self.angularVelocity > MAXSPEED * TURNINGSPEED
+        if self.angularVelocity > MAXSPEED * TURNINGSPEED:
             self.angularVelocity= MAXSPEED * TURNINGSPEED
         
     def turnRight(self):
@@ -341,8 +341,8 @@ class Snake(pygame.sprite.Sprite):
         
     def move(self):
         self.rotate(self.angularVelocity)
-        xMove = self.velocity * math.sin(math.radians(self.angle-90))
-        yMove = self.velocity * math.cos(math.radians(self.angle-90))
+        xMove = self.velocity * math.sin(math.radians(self.angle-90.0))
+        yMove = self.velocity * math.cos(math.radians(self.angle-90.0))
         
         self.rect.move_ip(xMove, yMove)
         self.refreshmask()
