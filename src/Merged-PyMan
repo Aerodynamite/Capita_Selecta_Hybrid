@@ -58,6 +58,8 @@ class PyManMain:
             initRect = True
             self.playStartX = 0
             self.playStartY = 0
+            self.playStartXRight = 0
+            self.playStartYRight = 0
             self.playWidth = self.width
             self.playHeight = self.height
             # Loop to draw the rectangle on the screen
@@ -120,6 +122,8 @@ class PyManMain:
                     initFinished = True
                     self.playStartX = rectTopLeft[0]
                     self.playStartY = rectTopLeft[1]
+                    self.playStartXRight = rectBotRight[0]
+                    self.playStartYRight = rectBotRight[1]
                     self.playWidth = rectBotRight[0] - rectTopLeft[0]
                     self.playHeight = rectBotRight[1] - rectTopLeft[1]
                 elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -224,9 +228,12 @@ class PyManMain:
                 cv2.imshow('mask',mask)
 
                 #resize to fit the gameboard
+                boardsizedCVMask= zeros(self.height, self.width)
                 rectangleMask= mask[self.rectangle[1]:self.rectangle[3], self.rectangle[0]:self.rectangle[2]]
-                boardsizedSurface = cv2.resize(rectangleMask, (self.playWidth, self.playHeight))#DE JUISTE WIDTH EN HEIGHT GEBRUIKEN!
-                boardsizedMask= pygame.mask.from_threshold(boardsizedSurface, (255,255,255,255), (50,50,50,255)) # Hier is nog ne error
+                #paste resised rectangle mask in boardsizedCVMask
+                boardsizedCVMask[self.playStartY:self.playStartYRight, self.playStartX:self.playStartXRight] = cv2.resize(rectangleMask, (self.playWidth, self.playHeight)
+                boardsizedSurface = pygame.surfarray.make_surface(boardsizedCVMask)
+                boardsizedMask= pygame.mask.from_threshold(boardsizedSurface, (255,255,255,255), (50,50,50,255))
 
 
             cv2.imshow('frame',frame)
@@ -616,19 +623,6 @@ class Pellet(pygame.sprite.Sprite):
             self.rect = self.image.get_rect()
 
         self.hitmask = pygame.mask.from_surface(self.image)
-
-class Mine(pygame.sprite.Sprite):
-    def __init__(self, rect=None):
-        pygame.sprite.Sprite.__init__(self)
-        self.image, self.rect = load_image('images\\pong.png',-1)
-        self.image = pygame.transform.scale(self.image, (self.rect.width, self.rect.height))
-        if rect != None:
-            self.rect = self.image.get_rect(center=rect.center)
-        else:
-            self.rect = self.image.get_rect()
-
-        self.hitmask = pygame.mask.from_surface(self.image)
-
 
 
 
