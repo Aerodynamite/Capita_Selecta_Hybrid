@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+import cv2
+import numpy as np
 
 import os, sys
 import pygame
@@ -137,8 +139,14 @@ class PyManMain:
                 cv2.imshow('mask',mask)
                 
                 #resize to fit the gameboard
-                boardsizedMask= mask[self.rectangle[1]:self.rectangle[3], self.rectangle[0]:self.rectangle[2]]
-                boardsurface = pygame.surfarray.make_surface(cv2.resize(boarsizedMask, (self.width, self.height)))
+                rectangleMask= mask[self.rectangle[1]:self.rectangle[3], self.rectangle[0]:self.rectangle[2]]
+                boardsizedMask= cv2.resize(rectangleMask, (self.width, self.height))
+                for i in range(0, len(boardsizedMask)):
+                    for j in range(0, len(boardsizedMask[i])):
+                        boardsizedMask[i][j]= [boardsizedMask[i][j], boardsizedMask[i][j], boardsizedMask[i][j]] 
+                
+                boardsizedSurface = pygame.surfarray.make_surface()
+                self.screen.blit(boardsizedSurface, (0, 0))
                 
                 
             cv2.imshow('frame',frame)
