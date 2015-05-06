@@ -140,10 +140,11 @@ class PyManMain:
                 
                 #resize to fit the gameboard
                 rectangleMask= mask[self.rectangle[1]:self.rectangle[3], self.rectangle[0]:self.rectangle[2]]
-                boardsizedMask= cv2.resize(rectangleMask, (self.width, self.height))
+                temp= cv2.resize(rectangleMask, (self.width, self.height))
+                boardsizedMask= zeros((self.width, self.height, 3)
                 for i in range(0, len(boardsizedMask)):
                     for j in range(0, len(boardsizedMask[i])):
-                        boardsizedMask[i][j]= [boardsizedMask[i][j], boardsizedMask[i][j], boardsizedMask[i][j]] 
+                        boardsizedMask[i][j]= np.array([temp[i][j], temp[i][j], temp[i][j]])
                 
                 boardsizedSurface = pygame.surfarray.make_surface()
                 self.screen.blit(boardsizedSurface, (0, 0))
