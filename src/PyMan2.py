@@ -108,13 +108,20 @@ class PyManMain:
                 """Do the Drawing"""
                 self.screen.blit(self.background, (0, 0))
                 if pygame.font:
-                    font = pygame.font.Font(None, 36)
-                    text1 = font.render("Ammo player1 %s" % self.snake1.pellets
+                    font = pygame.font.Font(None, 48)
+                    text1 = font.render("Ammo Player 1: %s" % self.snake1.pellets
                                         , 1, (255, 0, 0))
-                    text2 = font.render("Ammo player2 %s" % self.snake2.pellets
+                    text2 = font.render("Ammo Player 2: %s" % self.snake2.pellets
                                         , 1, (255, 0, 0))
-                    textpos1 = text1.get_rect(centerx=self.background.get_width()/2)
-                    textpos2 = text1.get_rect(centerx=self.background.get_width()/2)
+                    text1 = pygame.transform.rotozoom(text1, -90, 1)
+                    text2 = pygame.transform.rotozoom(text2, 90, 1)
+                    textpos1 = text1.get_rect()
+                    textpos1.centery = self.background.get_height()/2
+                    textpos2 = text1.get_rect()
+                    textpos2.centerx = self.background.get_width() - 20
+                    textpos2.centery = self.background.get_height()/2
+
+
                     self.screen.blit(text1, textpos1)
                     self.screen.blit(text2, textpos2)
 
