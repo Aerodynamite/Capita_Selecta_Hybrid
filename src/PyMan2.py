@@ -72,12 +72,14 @@ class PyManMain:
                         self.snake2.rotate(-10)
                     elif(event.key == K_e):
                         self.snake2.move(event.key)
-                    elif event.key == K_SPACE:
+                    elif event.key == K_SPACE and self.snake1.hasAmmo():
+                        self.snake1.fire()
                         # Fire a bullet if the user taps the space bar
                         bullet = Bullet(self.snake1.angle, self.snake1, 1)
                         # Add the bullet to the lists
                         bullet_list.add(bullet)
-                    elif event.key == K_KP_ENTER:
+                    elif event.key == K_KP_ENTER and self.snake2.hasAmmo():
+                        self.snake2.fire()
                         # Fire a bullet if the user taps the space bar
                         bullet = Bullet(self.snake2.angle, self.snake2, 2)
                         # Add the bullet to the lists
@@ -307,12 +309,20 @@ class Snake(pygame.sprite.Sprite):
     def refreshmask(self):
         self.hitmask = pygame.mask.from_surface(self.image)
 
-
     def collideWithSubmarine(self, submarine):
         offset_x, offset_y = (self.rect.left - submarine.rect.left), (self.rect.top - submarine.rect.top)
-        if (submarine.hitmask.overlap(self.hitmask, (offset_x, offset_y)) != None):
+        if submarine.hitmask.overlap(self.hitmask, (offset_x, offset_y)) is not None:
             return True
         return False
+
+    def hasAmmo(self):
+        if self.pellets == 0:
+            return False
+        else:
+            return True
+
+    def fire(self):
+        self.pellets -= 1
 
 # Define some colors
 BLACK    = (   0,   0,   0)
