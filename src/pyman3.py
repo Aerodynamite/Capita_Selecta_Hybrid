@@ -55,7 +55,7 @@ class PyManMain:
     def setCorner1Selected(self, val):
         self.corner1Selected= val
         
-    def onmouse(event, x, y, flags, param):
+    def onmouse(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
             if(self.corner1Selected):
                 self.appendRectangle(x, y)
