@@ -254,12 +254,11 @@ class PyManMain:
             amountTorp2 = self.collideWithTorpedo(self.snake2)
 
             """Check for collision between the submarine and the mines"""
-            """colsMines1 = self.collideWithMines(self.snake1)
-            colsMines2 = self.collideWithMines(self.snake2)
-            if(colsMines1):
+            
+            if(self.collideWithMines(self.snake1, boardsizedMask):
                 self.GameoverRestart(1)
-            elif(colsMines2):
-                self.GameoverRestart(2)"""
+            elif(self.collideWithMines(self.snake2, boardsizedMask):
+                self.GameoverRestart(2)
             if self.snake1.collideWithSubmarine(self.snake2):
                 self.GameoverRestart(0)
             else:
@@ -378,8 +377,12 @@ class PyManMain:
 
     def collideWithMines(self, snake, mines):
         """check if there is a collision between mines and submarine"""
-        # if (snake.hitmask.overlap(mines.hitmask, (offset_x, offset_y)) != None):
-        #     return True
+        width, height = snake.hitmask.get_size()
+        leftTopX, leftTopY= snake.rect.topLeft
+        for x in range(0, width):
+            for y in range(0, height):
+                if (snake.hitmask.get_at((x, y)) > 0 and mines.get_at((leftTopx + x, leftTopY + y)) > 0):
+                    return True
         return False
 
     def collideWithTorpedo(self, snake):
