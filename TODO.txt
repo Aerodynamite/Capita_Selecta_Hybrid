@@ -1,4 +1,7 @@
-- mask mapping
-- schieten
-- multiplayer
-- 2 pc multiplayer (client - server)
+- mask mapping: collision detection
+- schieten: checken voor ammo
+- Koen movement mergen
+
+
+- Tijd teveel: formulier van capita shit
+
