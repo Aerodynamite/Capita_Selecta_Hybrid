@@ -1,5 +1,6 @@
 #! /usr/bin/env python
-
+import cv2
+import numpy as np
 import os, sys
 import pygame
 import math
@@ -63,6 +64,40 @@ class PyManMain:
             # Press space to end if rectangle is good
             self.initLoop()
             # print self.playStartX, self.playStartY, self.playWidth, self.playHeight
+
+                #camera rectangle values
+        self.rectangleReady= False
+        self.corner1Selected= False
+        self.rectangle= None
+        self.cap = cv2.VideoCapture(0)
+        cv2.namedWindow('frame',1)
+        cv2.setMouseCallback('frame', self.onmouse)
+
+    def appendRectangle(self, val1, val2):
+        self.rectangle.append(val1)
+        self.rectangle.append(val2)
+
+    def setRectangleReady(self, val):
+        self.rectangleReady= val
+
+    def setRectangle(self, val):
+        self.rectangle= val
+
+    def setCorner1Selected(self, val):
+        self.corner1Selected= val
+
+    def onmouse(self, event, x, y, flags, param):
+        if event == cv2.EVENT_LBUTTONDOWN:
+            if(self.corner1Selected):
+                self.appendRectangle(x, y)
+                self.setRectangleReady(True)
+                self.setCorner1Selected(False)
+            else:
+                self.setRectangle([x, y])
+                self.setCorner1Selected(True)
+                self.setRectangleReady(False)
+
+
 
     def initLoop(self):
         """Create the background"""
@@ -171,7 +206,32 @@ class PyManMain:
                     elif event.key == K_d:
                         self.snake2.downKeyDown = False
             
-                
+            # Take each frame
+            _, frame = self.cap.read()
+            if(self.rectangleReady):
+                cv2.rectangle(frame,(self.rectangle[0],self.rectangle[1]),(self.rectangle[2],self.rectangle[3]), (255,0,0) ,3)
+
+                # Convert BGR to HSV
+                hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+                # define range of color in HSV
+                lower_colorvalue = np.array([10,190,170], dtype=np.uint8)
+                upper_colorvalue = np.array([25,255,255], dtype=np.uint8)
+
+                # Threshold the HSV image to get only the specified colors
+                mask = cv2.inRange(hsv, lower_colorvalue, upper_colorvalue)
+
+                cv2.imshow('mask',mask)
+
+                #resize to fit the gameboard
+                rectangleMask= mask[self.rectangle[1]:self.rectangle[3], self.rectangle[0]:self.rectangle[2]]
+                boardsizedSurface = cv2.resize(rectangleMask, (self.playWidth, self.playHeight))#DE JUISTE WIDTH EN HEIGHT GEBRUIKEN!
+                boardsizedMask= pygame.mask.from_threshold(boardsizedSurface, (255,255,255,255), (50,50,50,255)) # Hier is nog ne error
+
+
+            cv2.imshow('frame',frame)
+
+
             #move the snakes and add drag
             self.snake1.checkKeys(self.bullet_list)
             self.snake2.checkKeys(self.bullet_list)
@@ -179,7 +239,9 @@ class PyManMain:
             self.snake2.move()
             self.snake1.addDrag()
             self.snake2.addDrag()
-            
+
+
+
             """Check for collision between the submarine and the bullets"""
             amountTorp1 = self.collideWithTorpedo(self.snake1)
             amountTorp2 = self.collideWithTorpedo(self.snake2)
@@ -307,12 +369,10 @@ class PyManMain:
 
             self.mine_sprites.add(mine)
 
-    def collideWithMines(self, snake):
+    def collideWithMines(self, snake, mines):
         """check if there is a collision between mines and submarine"""
-        for mine in self.mine_sprites:
-            offset_x, offset_y = (mine.rect.left - snake.rect.left), (mine.rect.top - snake.rect.top)
-            if (snake.hitmask.overlap(mine.hitmask, (offset_x, offset_y)) != None):
-                return True
+        # if (snake.hitmask.overlap(mines.hitmask, (offset_x, offset_y)) != None):
+        #     return True
         return False
 
     def collideWithTorpedo(self, snake):
