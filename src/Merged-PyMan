@@ -21,6 +21,8 @@ ANGULARDRAG= 2.0/FPS
 if not pygame.font: print 'Warning, fonts disabled'
 if not pygame.mixer: print 'Warning, sound disabled'
 
+initRect = False
+
 class PyManMain:
     """The Main PyMan Class - This class handles the main 
     initialization and creating of the Game."""
@@ -49,6 +51,65 @@ class PyManMain:
         self.snake_sprites = pygame.sprite.Group()
         self.pellet_sprites = pygame.sprite.Group()
 
+        """Initialise the projected rectangle"""
+        global initRect
+        if not initRect:
+            initRect = True
+            self.playStartX = 0
+            self.playStartY = 0
+            self.playWidth = self.width
+            self.playHeight = self.height
+            # Loop to draw the rectangle on the screen
+            # Press space to end if rectangle is good
+            self.initLoop()
+            # print self.playStartX, self.playStartY, self.playWidth, self.playHeight
+
+    def initLoop(self):
+        """Create the background"""
+        self.background = pygame.Surface(self.screen.get_size())
+        self.background = self.background.convert()
+        self.background.fill((0, 0, 0))
+
+        cornerClick = 0
+        rectTopLeft = [0, 0]
+        rectBotRight = [1, 1]
+        clickedTwice = False
+
+        initFinished = False
+        while not initFinished:
+            # Test of vierhoek goed staat
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                elif event.type == KEYDOWN and event.key == K_SPACE:
+                    initFinished = True
+                    self.playStartX = rectTopLeft[0]
+                    self.playStartY = rectTopLeft[1]
+                    self.playWidth = rectBotRight[0] - rectTopLeft[0]
+                    self.playHeight = rectBotRight[1] - rectTopLeft[1]
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    print "mouse at (%d, %d)" % event.pos
+                    if cornerClick == 0:
+                        print "rect Top"
+                        rectTopLeft = event.pos
+                    elif cornerClick == 1:
+                        print "rect Bot"
+                        rectBotRight = event.pos
+                        clickedTwice = True
+                        print rectBotRight
+
+                    cornerClick = (cornerClick + 1) % 2
+
+            """Do the Drawing"""
+            self.screen.blit(self.background, (0, 0))
+
+            if clickedTwice:
+                pygame.draw.rect(self.screen, (255, 0, 0),
+                                 (rectTopLeft[0], rectTopLeft[1],
+                                  rectBotRight[0] - rectTopLeft[0], rectBotRight[1] - rectTopLeft[1]))
+
+            pygame.display.flip()
+
                                                           
     def MainLoop(self):
         """This is the Main Loop of the Game"""
@@ -60,7 +121,7 @@ class PyManMain:
         
         
         """Create the background"""
-        self.background = pygame.Surface(self.screen.get_size())
+        self.background = pygame.Surface((self.playWidth, self.playHeight))
         self.background = self.background.convert()
         self.background.fill((0,0,0))
 
@@ -139,15 +200,23 @@ class PyManMain:
                 self.snake2.pellets += amountTorp2
 
                 """Do the Drawing"""
-                self.screen.blit(self.background, (0, 0))
+                self.screen.blit(self.background, (self.playStartX, self.playStartY))
                 if pygame.font:
                     font = pygame.font.Font(None, 36)
                     text1 = font.render("Ammo player1 %s" % self.snake1.pellets
                                         , 1, (255, 0, 0))
                     text2 = font.render("Ammo player2 %s" % self.snake2.pellets
                                         , 1, (255, 0, 0))
-                    textpos1 = text1.get_rect(centerx=self.background.get_width()/2)
-                    textpos2 = text1.get_rect(centerx=self.background.get_width()/2)
+
+                    # rotate text
+                    text1 = pygame.transform.rotozoom(text1, -90, 1)
+                    text2 = pygame.transform.rotozoom(text2, 90, 1)
+                    textpos1 = text1.get_rect()
+                    textpos1.centerx = self.playStartX + 20
+                    textpos1.centery = self.playStartY + self.background.get_height()/2
+                    textpos2 = text1.get_rect()
+                    textpos2.centerx = self.playStartX + self.background.get_width() - 20
+                    textpos2.centery = self.playStartY + self.background.get_height()/2
                     self.screen.blit(text1, textpos1)
                     self.screen.blit(text2, textpos2)
 
@@ -183,8 +252,6 @@ class PyManMain:
 
             # --- Limit to 20 frames per second
             clock.tick(60)
-                
-                
 
     def DrawBoundingB(self, spritesGroup):
         for x in spritesGroup:
@@ -201,23 +268,25 @@ class PyManMain:
         self.snake2 = Snake(2)
         self.snake_sprites.add(pygame.sprite.RenderPlain(self.snake2))
 
-        self.snake1.rect.move_ip(0, self.height/2)
-        self.snake2.rect.move_ip(self.width-self.snake2.rect.width, self.height/2)
+        # move boat to vertical middle
+        self.snake1.rect.move_ip(self.playStartX, self.playStartY + self.playHeight/2)
         self.snake1.rotate(180)
+        # move player 2 to his starting x point
+        self.snake2.rect.move_ip(self.playStartX + self.playWidth - self.snake2.rect.width, self.playStartY + self.playHeight/2)
         """Create all of the pellets and add them to the 
         pellet_sprites group"""
 
         for x in range(self.numTopedos):
-            width = randint(0,self.width)
-            height = randint(0,self.height)
-            self.pellet_sprites.add(Pellet(pygame.Rect(width, height, 64, 64)))
+            xPos = randint(0,self.playWidth) + self.playStartX
+            yPos = randint(0,self.playHeight) + self.playStartY
+            self.pellet_sprites.add(Pellet(pygame.Rect(xPos, yPos, 64, 64)))
 
 
     def RespawnTorpedos(self, num):
         for i in range(num):
-            width = randint(0,self.width)
-            height = randint(0,self.height)
-            self.pellet_sprites.add(Pellet(pygame.Rect(width, height, 64, 64)))
+            xPos = randint(0,self.playWidth) + self.playStartX
+            yPos = randint(0,self.playHeight) + self.playStartY
+            self.pellet_sprites.add(Pellet(pygame.Rect(xPos, yPos, 64, 64)))
 
     def SpawnMines(self, num, submarine1, submarine2):
         """Create the mines group"""
@@ -262,7 +331,7 @@ class PyManMain:
     def GameoverRestart(self, loser):
         """hit a mine -> gameover"""
         """make screen black"""
-        self.screen.blit(self.background, (0, 0))
+        self.screen.blit(self.background, (self.playStartX, self.playStartY))
         if pygame.font:
             font = pygame.font.Font(None, 80)
             if(loser == 1):
@@ -274,9 +343,12 @@ class PyManMain:
             else:
                 text = font.render('No winner, something went wrong', 1, (255, 0, 0))
             text2 = font.render('Press a button to continue', 1, (255, 0, 0))
-            textpos = text.get_rect(centerx=self.background.get_width()/2)
-            textpos.centery = self.background.get_height()/2 - (textpos.height + 5)
-            textpos2 = text.get_rect(centerx=self.background.get_width()/2, centery=self.background.get_height()/2)
+            textpos = text.get_rect()
+            textpos.centerx = self.playStartX + self.background.get_width()/2;
+            textpos.centery = self.playStartY + self.background.get_height()/2 - (textpos.height + 5)
+            textpos2 = text.get_rect()
+            textpos2.centerx = self.playStartX + self.background.get_width()/2;
+            textpos2.centery = self.playStartY + self.background.get_height()/2
             self.screen.blit(text, textpos)
             self.screen.blit(text2, textpos2)
             pygame.display.flip()
