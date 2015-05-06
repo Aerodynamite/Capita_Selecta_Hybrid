@@ -219,7 +219,8 @@ class PyManMain:
                 hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
                 # define range of color in HSV
-                lower_colorvalue = np.array([10,190,170], dtype=np.uint8)
+                # lower_colorvalue = np.array([10,190,170], dtype=np.uint8)
+                lower_colorvalue = np.array([10,100,150], dtype=np.uint8)
                 upper_colorvalue = np.array([25,255,255], dtype=np.uint8)
 
                 # Threshold the HSV image to get only the specified colors
@@ -228,10 +229,10 @@ class PyManMain:
                 cv2.imshow('mask',mask)
 
                 #resize to fit the gameboard
-                boardsizedCVMask= np.zeros((self.height, self.width))
+                boardsizedCVMask= np.zeros((self.width, self.height))
                 rectangleMask= mask[self.rectangle[1]:self.rectangle[3], self.rectangle[0]:self.rectangle[2]]
                 #paste resised rectangle mask in boardsizedCVMask
-                boardsizedCVMask[self.playStartY:self.playStartYRight, self.playStartX:self.playStartXRight] = cv2.resize(rectangleMask, (self.playWidth, self.playHeight))
+                boardsizedCVMask[self.playStartX:self.playStartXRight, self.playStartY:self.playStartYRight] = cv2.resize(rectangleMask, (self.playHeight, self.playWidth))
                 boardsizedSurface = pygame.surfarray.make_surface(boardsizedCVMask)
                 boardsizedMask= pygame.mask.from_threshold(boardsizedSurface, (255,255,255,255), (50,50,50,255))
 
@@ -379,13 +380,13 @@ class PyManMain:
     def collideWithMines(self, snake, mines):
         """check if there is a collision between mines and submarine"""
         width, height = snake.hitmask.get_size()
-        print "snake hitmask"
-        print width, height
+        # print "snake hitmask"
+        # print width, height
         leftTopX, leftTopY= snake.rect.topleft
-        print "top"
-        print leftTopX, leftTopY
-        print "mines"
-        print mines.get_size()
+        # print "top"
+        # print leftTopX, leftTopY
+        # print "mines"
+        # print mines.get_size()
         for x in range(0, width):
             for y in range(0, height):
                 if snake.hitmask.get_at((x, y)) > 0 and mines.get_at((leftTopX + x, leftTopY + y)) > 0:
