@@ -46,7 +46,7 @@ class PyManMain:
         self.height = 900"""
 
         """Create the Screen"""
-        self.screen = pygame.display.set_mode((self.width, self.height))#, pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode((self.width, self.height), pygame.FULLSCREEN)
 
         """Create the sprite groups"""
         self.snake_sprites = pygame.sprite.Group()
@@ -67,13 +67,13 @@ class PyManMain:
             self.initLoop()
             # print self.playStartX, self.playStartY, self.playWidth, self.playHeight
 
-                #camera rectangle values
-        self.rectangleReady= False
-        self.corner1Selected= False
-        self.rectangle= None
-        self.cap = cv2.VideoCapture(1)
-        cv2.namedWindow('frame',1)
-        cv2.setMouseCallback('frame', self.onmouse)
+            #camera rectangle values
+            self.rectangleReady= False
+            self.corner1Selected= False
+            self.rectangle= None
+            self.cap = cv2.VideoCapture(1)
+            cv2.namedWindow('frame',1)
+            cv2.setMouseCallback('frame', self.onmouse)
 
     def appendRectangle(self, val1, val2):
         self.rectangle.append(val1)
@@ -221,31 +221,54 @@ class PyManMain:
             # Take each frame
             _, frame = self.cap.read()
             if self.rectangleReady:
-                cv2.rectangle(frame, (self.rectangle[0], self.rectangle[1]), (self.rectangle[2], self.rectangle[3]), (255, 0, 0), 3)
+                cv2.rectangle(frame, (self.rectangle[0], self.rectangle[1]), (self.rectangle[2], self.rectangle[3]),
+                              (255, 0, 0), 3)
 
                 # Convert BGR to HSV
                 hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
                 # define range of color in HSV
                 # lower_colorvalue = np.array([10,190,170], dtype=np.uint8)
-                lower_colorvalue = np.array([10,100,150], dtype=np.uint8)
+                #lower_colorvalue = np.array([10,100,150], dtype=np.uint8)
+                lower_colorvalue = np.array([5,10,15], dtype=np.uint8)
                 upper_colorvalue = np.array([25,255,255], dtype=np.uint8)
 
                 # Threshold the HSV image to get only the specified colors
                 mask = cv2.inRange(hsv, lower_colorvalue, upper_colorvalue)
 
-                cv2.imshow('mask',mask)
+                #cv2.imshow('mask',mask)
 
                 #resize to fit the gameboard
-                boardsizedCVMask= np.zeros((self.width, self.height))
-                rectangleMask= mask[self.rectangle[1]:self.rectangle[3], self.rectangle[0]:self.rectangle[2]]
+                boardsizedCVMask = np.zeros((self.width, self.height)) # = 1400 x 1050
+                rectangleMask = mask[self.rectangle[1]:self.rectangle[3], self.rectangle[0]:self.rectangle[2]] # camera vierkant
+                #print "rectangleMask"
+                #print rectangleMask.shape
                 #paste resised rectangle mask in boardsizedCVMask
-                boardsizedCVMask[self.playStartX:self.playStartXRight, self.playStartY:self.playStartYRight] = cv2.resize(rectangleMask, (self.playHeight, self.playWidth))
+                #print "playStartX" + str(self.playStartX)
+                #print "playStartXRight" + str(self.playStartXRight)
+                boardsizedCVMask[self.playStartX:self.playStartXRight, self.playStartY:self.playStartYRight] = cv2.resize(rectangleMask.transpose(), (self.playHeight, self.playWidth))
+
                 boardsizedSurface = pygame.surfarray.make_surface(boardsizedCVMask)
-                boardsizedMask= pygame.mask.from_threshold(boardsizedSurface, (255,255,255,255), (50,50,50,255))
+                boardsizedMask = pygame.mask.from_threshold(boardsizedSurface, (255,255,255,255), (50,50,50,255))
 
+                #print "boardSizedMask size: " + str(boardsizedMask.get_size())
+                #cv2.imshow('boardsizedCVMask', boardsizedCVMask)
 
-            cv2.imshow('frame', frame)
+                #print "# white pixels" + str(boardsizedMask.count())
+                #found = False
+                #for i in range(self.playStartX, self.playWidth):
+                #    for j in range(self.playStartY, self.playHeight):
+                #        if boardsizedMask.get_at((i, j)) != 0:
+                #            print "i: " + str(i - self.playStartX)
+                #            print "j: " + str(j - self.playStartY)
+                #            print "--"
+                #            found = True
+                #            break
+                #    if found:
+                #        break
+
+            if not self.rectangleReady:
+                cv2.imshow('frame', frame)
 
             """Check for collision between the submarine and the bullets"""
             amountTorp1 = self.collideWithTorpedo(self.snake1)
@@ -253,10 +276,9 @@ class PyManMain:
 
             """Check for collision between the submarine and the mines"""
             
-            if(self.rectangleReady and self.collideWithMines(self.snake1, boardsizedMask)):
+            if self.rectangleReady and self.collideWithMines(self.snake1, boardsizedMask):
                 self.GameoverRestart(1)
-            #print "snake1 ok"
-            if(self.rectangleReady and self.collideWithMines(self.snake2, boardsizedMask)):
+            if self.rectangleReady and self.collideWithMines(self.snake2, boardsizedMask):
                 self.GameoverRestart(2)
             if self.snake1.collideWithSubmarine(self.snake2):
                 self.GameoverRestart(0)
@@ -271,9 +293,9 @@ class PyManMain:
                 if pygame.font:
                     font = pygame.font.Font(None, 36)
                     text1 = font.render("Ammo player1 %s" % self.snake1.pellets
-                                        , 1, (255, 0, 0))
+                                        , 1, (0, 0, 255))
                     text2 = font.render("Ammo player2 %s" % self.snake2.pellets
-                                        , 1, (255, 0, 0))
+                                        , 1, (0, 0, 255))
 
                     # rotate text
                     text1 = pygame.transform.rotozoom(text1, -90, 1)
@@ -318,7 +340,7 @@ class PyManMain:
             pygame.display.flip()
 
             # --- Limit to 20 frames per second
-            clock.tick(60)
+            #clock.tick(60)
 
     def DrawBoundingB(self, spritesGroup):
         for x in spritesGroup:
@@ -355,39 +377,23 @@ class PyManMain:
             yPos = randint(0,self.playHeight) + self.playStartY
             self.pellet_sprites.add(Pellet(pygame.Rect(xPos, yPos, 64, 64)))
 
-    def SpawnMines(self, num, submarine1, submarine2):
-        """Create the mines group"""
-        self.mine_sprites = pygame.sprite.Group()
-
-        for i in range(num):
-            width = randint(0,self.width)
-            height = randint(0,self.height)
-            mine = Mine(pygame.Rect(width, height, 10, 10))
-            collide = pygame.sprite.collide_rect(mine, submarine1)
-            collide += pygame.sprite.collide_rect(mine, submarine2)
-            while(collide):
-                width = randint(0,self.width)
-                height = randint(0,self.height)
-                mine = Mine(pygame.Rect(width, height, 10, 10))
-                collide = pygame.sprite.collide_rect(mine, submarine1)
-                collide += pygame.sprite.collide_rect(mine, submarine2)
-
-            self.mine_sprites.add(mine)
 
     def collideWithMines(self, snake, mines):
         """check if there is a collision between mines and submarine"""
-        width, height = snake.hitmask.get_size()
-        # print "snake hitmask"
-        # print width, height
-        leftTopX, leftTopY= snake.rect.topleft
-        # print "top"
-        # print leftTopX, leftTopY
-        # print "mines"
-        # print mines.get_size()
-        for x in range(0, width):
-            for y in range(0, height):
-                if snake.hitmask.get_at((x, y)) > 0 and mines.get_at((leftTopX + x, leftTopY + y)) > 0:
-                    return True
+        #width, height = snake.hitmask.get_size()
+        #print "snake hitmask"
+        #print snake.hitmask.get_size()
+        #leftTopX, leftTopY = snake.rect.topleft
+        #print "top"
+        #print leftTopX, leftTopY
+        #print "mines"
+        #print mines.get_size()
+        if mines.overlap(snake.hitmask, snake.rect.topleft) is not None:
+            return True
+        #for x in range(0, width):
+        #    for y in range(0, height):
+        #        if snake.hitmask.get_at((x, y)) > 0 and mines.get_at((leftTopX + x, leftTopY + y)) > 0:
+        #            return True
         return False
 
     def collideWithTorpedo(self, snake):
@@ -410,14 +416,14 @@ class PyManMain:
         if pygame.font:
             font = pygame.font.Font(None, 80)
             if(loser == 1):
-                text = font.render('Game Over, player 2 won!!!', 1, (255, 0, 0))
+                text = font.render('Game Over, player 2 won!!!', 1, (0, 0, 255))
             elif(loser == 2):
-                text = font.render('Game Over, player 1 won!!!', 1, (255, 0, 0))
+                text = font.render('Game Over, player 1 won!!!', 1, (0, 0, 255))
             elif(loser == 0):
-                text = font.render('Crash! Both the submarines sank!', 1, (255, 0, 0))
+                text = font.render('Crash! Both the submarines sank!', 1, (0, 0, 255))
             else:
-                text = font.render('No winner, something went wrong', 1, (255, 0, 0))
-            text2 = font.render('Press a button to continue', 1, (255, 0, 0))
+                text = font.render('No winner, something went wrong', 1, (0, 0, 255))
+            text2 = font.render('Press a button to continue', 1, (0, 0, 255))
             textpos = text.get_rect()
             textpos.centerx = self.playStartX + self.background.get_width()/2;
             textpos.centery = self.playStartY + self.background.get_height()/2 - (textpos.height + 5)
@@ -442,7 +448,7 @@ class PyManMain:
             """Load All of our Sprites"""
             self.LoadSprites()
             """pawn the mines on random locations"""
-            self.SpawnMines(self.numMines, self.snake1, self.snake2)
+            #self.SpawnMines(self.numMines, self.snake1, self.snake2)
 
 
 
