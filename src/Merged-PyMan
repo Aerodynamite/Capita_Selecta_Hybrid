@@ -8,13 +8,14 @@ from pygame.locals import *
 from helpers import *
 from random import randint
 
-FPS= 60.0
+FPS= 20.0
 
 FORWARDSPEED= 5.0/FPS
 BACKWARDSPEED= 3.0/FPS
 TURNINGSPEED= 5.0/FPS
 #example: maxforwardspeed= maxspeed * forwardspeed
-MAXSPEED= 50.0
+MAXSPEED= 40.0
+MAXTURNINGSPEED = 15.0
 
 DRAG= 2.0/FPS
 ANGULARDRAG= 2.0/FPS
@@ -425,7 +426,7 @@ class PyManMain:
                 text = font.render('Crash! Both the submarines sank!', 1, (0, 0, 255))
             else:
                 text = font.render('No winner, something went wrong', 1, (0, 0, 255))
-            text2 = font.render('Press a button to continue', 1, (0, 0, 255))
+            text2 = font.render('Press P to continue', 1, (0, 0, 255))
             textpos = text.get_rect()
             textpos.centerx = self.playStartX + self.background.get_width()/2;
             textpos.centery = self.playStartY + self.background.get_height()/2 - (textpos.height + 5)
@@ -437,20 +438,23 @@ class PyManMain:
             pygame.display.flip()
 
         """wait a couple of seconds"""
-        pygame.time.wait(100)
+        pygame.time.wait(2000)
 
         """wait for a keypress to restart"""
-        event = pygame.event.wait()
-        if event.type == pygame.QUIT:
-            sys.exit()
-        elif event.type == KEYDOWN:
-            """start a new game"""
-            """remove all the current objects"""
-            self.__init__()
-            """Load All of our Sprites"""
-            self.LoadSprites()
-            """pawn the mines on random locations"""
-            #self.SpawnMines(self.numMines, self.snake1, self.snake2)
+        while 1:
+            event = pygame.event.wait()
+            if event.type == pygame.QUIT:
+                sys.exit()
+            elif event.type == KEYDOWN:
+                if event.key == K_p:
+                    """start a new game"""
+                    """remove all the current objects"""
+                    self.__init__()
+                    """Load All of our Sprites"""
+                    self.LoadSprites()
+                    break
+                    """pawn the mines on random locations"""
+                    #self.SpawnMines(self.numMines, self.snake1, self.snake2)
 
 
 
@@ -525,13 +529,13 @@ class Snake(pygame.sprite.Sprite):
 
     def turnLeft(self):
         self.angularVelocity+= TURNINGSPEED
-        if self.angularVelocity > MAXSPEED * TURNINGSPEED:
-            self.angularVelocity= MAXSPEED * TURNINGSPEED
+        if self.angularVelocity > MAXTURNINGSPEED * TURNINGSPEED:
+            self.angularVelocity= MAXTURNINGSPEED * TURNINGSPEED
 
     def turnRight(self):
         self.angularVelocity-= TURNINGSPEED
-        if self.angularVelocity < -MAXSPEED * TURNINGSPEED:
-            self.angularVelocity= -MAXSPEED * TURNINGSPEED
+        if self.angularVelocity < -MAXTURNINGSPEED * TURNINGSPEED:
+            self.angularVelocity= -MAXTURNINGSPEED * TURNINGSPEED
 
     def move(self):
         self.rotate(self.angularVelocity)
@@ -613,8 +617,8 @@ class Bullet(pygame.sprite.Sprite):
     def update(self):
         """ Move the bullet. """
         #print(self.angle)
-        x_dist = 8
-        y_dist = 8
+        x_dist = 20
+        y_dist = 20
         theta = self.angle / 180.0 * math.pi
         dx = math.cos(theta) * x_dist
         dy = math.sin(theta) * y_dist
