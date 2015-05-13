@@ -71,7 +71,7 @@ class PyManMain:
         self.rectangleReady= False
         self.corner1Selected= False
         self.rectangle= None
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(1)
         cv2.namedWindow('frame',1)
         cv2.setMouseCallback('frame', self.onmouse)
 
@@ -209,11 +209,19 @@ class PyManMain:
                         self.snake2.upKeyDown = False
                     elif event.key == K_d:
                         self.snake2.downKeyDown = False
-            
+
+            #move the snakes and add drag
+            self.snake1.checkKeys(self.bullet_list)
+            self.snake2.checkKeys(self.bullet_list)
+            self.snake1.move()
+            self.snake2.move()
+            self.snake1.addDrag()
+            self.snake2.addDrag()
+
             # Take each frame
             _, frame = self.cap.read()
-            if(self.rectangleReady):
-                cv2.rectangle(frame,(self.rectangle[0],self.rectangle[1]),(self.rectangle[2],self.rectangle[3]), (255,0,0) ,3)
+            if self.rectangleReady:
+                cv2.rectangle(frame, (self.rectangle[0], self.rectangle[1]), (self.rectangle[2], self.rectangle[3]), (255, 0, 0), 3)
 
                 # Convert BGR to HSV
                 hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -237,18 +245,7 @@ class PyManMain:
                 boardsizedMask= pygame.mask.from_threshold(boardsizedSurface, (255,255,255,255), (50,50,50,255))
 
 
-            cv2.imshow('frame',frame)
-
-
-            #move the snakes and add drag
-            self.snake1.checkKeys(self.bullet_list)
-            self.snake2.checkKeys(self.bullet_list)
-            self.snake1.move()
-            self.snake2.move()
-            self.snake1.addDrag()
-            self.snake2.addDrag()
-
-
+            cv2.imshow('frame', frame)
 
             """Check for collision between the submarine and the bullets"""
             amountTorp1 = self.collideWithTorpedo(self.snake1)
@@ -258,7 +255,7 @@ class PyManMain:
             
             if(self.rectangleReady and self.collideWithMines(self.snake1, boardsizedMask)):
                 self.GameoverRestart(1)
-            print "snake1 ok"
+            #print "snake1 ok"
             if(self.rectangleReady and self.collideWithMines(self.snake2, boardsizedMask)):
                 self.GameoverRestart(2)
             if self.snake1.collideWithSubmarine(self.snake2):
